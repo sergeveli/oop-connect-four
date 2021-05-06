@@ -1,9 +1,20 @@
 import {Game} from './game.js'
 import {Column} from './game.js'
-import{ColumnWinInspector} from './column-win-inspector.js'
+import {GameJsonDeserializer} from './game.js'
+import {GameJsonSerializer} from './game.js'
+import {ColumnWinInspector} from './column-win-inspector.js'
 import {RowWinInspector} from './row-win-inspector.js'
+import {DiagonalWinInspector} from './diagonal-win-inspector.js'
+
+
 
 let game = undefined
+const json = window.localStorage.getItem('connect-four');
+if(json){
+    const deserializer = new GameJsonDeserializer(json)
+    game = deserializer.deserialize()
+    updateUI()
+}
  function updateUI(){
      let targets = document.getElementById('click-targets')
      let gameBoard = document.getElementById('board-holder')
@@ -98,8 +109,10 @@ window.addEventListener('DOMContentLoaded', event => {
         const columnIndex = Number.parseInt(targetID[targetID.length - 1])
         game.playInColumn(columnIndex)
         console.log(game.currentPlayer)
+        const serializer = new GameJsonSerializer(game);
+        const json = serializer.serialize()
+        window.localStorage.setItem('connect-four', json)
         updateUI()
-        
     })
 
 })

@@ -1,5 +1,6 @@
 import {ColumnWinInspector} from './column-win-inspector.js'
 import {RowWinInspector} from './row-win-inspector.js'
+import {DiagonalWinInspector} from './diagonal-win-inspector.js'
 
 class Game {
     constructor(playerOne, playerTwo, currentPlayer, winnerNumber){
@@ -49,6 +50,7 @@ class Game {
         this.checkForTie()
         this.checkForColumnWin()
         this.checkForRowWin()
+        this.checkForDiagonalWin()
             if(this.currentPlayer === 1){
             this.currentPlayer = 2
         } else if (this.currentPlayer === 2){
@@ -93,6 +95,19 @@ class Game {
                 }
             }
         }
+
+        checkForDiagonalWin(){
+            if(this.winnerNumber !== 0) return
+            for(let columnIndex = 0; columnIndex < 4; columnIndex++){
+                const columns = this.columns.slice(columnIndex, columnIndex + 4)
+                const inspector = new DiagonalWinInspector(columns);
+                const winnerNumber = inspector.inspect()
+                if(winnerNumber === 1 || winnerNumber === 2){
+                    this.winnerNumber = winnerNumber
+                    break
+                }
+            }
+        }
     }
 
     class Column {
@@ -117,4 +132,63 @@ class Game {
             }
         }
 
-    export{Game, Column}
+
+class GameJsonSerializer{
+    constructor(game){
+        this.game = game;
+    }
+
+    serialize(){
+        const data = {
+            playerOne: this.game.playerOne,
+            playerTwo: this.game.playerTwo,
+            tokens: [[], [], [], [], [], []],
+        }
+        for(let rowIndex = 0; rowIndex < 6; rowIndex++){
+            for(let columnIndex = 0; columnIndex < 7; columnIndex++){
+                let tokenValue = this.game.getTokenAt(rowIndex, columnIndex);
+                data.tokens[rowIndex][columnIndex] = tokenValue;
+            }
+        }
+
+        return JSON.stringify(data)
+    }
+}
+
+class GameJsonDeserializer{
+    constructor(json){
+        this.json = json
+    }
+
+    deserialize(){
+        const data = JSON.parse(this.json)
+        const game = new Game(data.playerOne, data.playerTwo)
+        const columnIndices = [5, 5, 5, 5, 5, 5, 5]
+        let playerTurn = 1
+
+        while(columnIndices.some(x => x !== -1)) {
+            for(let columnIndex = 0; columnIndex < 7; columnIndex++){
+                const rowIndex = columnIndices[columnIndex];
+                if(rowIndex === -1) continue
+                const tokenValue = data.tokens[rowIndex][columnIndex];
+                if(tokenValue === null){
+                    columnIndices[columnIndex] = -1
+                }
+                if(tokenValue === playerTurn){
+                    game.playInColumn(columnIndex)
+                    columnIndices[columnIndex] -= 1
+                    if(playerTurn === 1){
+                        playerTurn = 2
+                    } else {
+                        playerTurn = 1
+                    }
+                }
+            }
+
+        }
+
+        return game
+    }
+}
+
+    export{Game, Column, GameJsonDeserializer, GameJsonSerializer}
