@@ -1,5 +1,7 @@
 import {Game} from './game.js'
 import {Column} from './game.js'
+import{ColumnWinInspector} from './column-win-inspector.js'
+import {RowWinInspector} from './row-win-inspector.js'
 
 let game = undefined
  function updateUI(){
@@ -11,8 +13,18 @@ let game = undefined
          gameBoard.classList.add('is-invisible')
      } else {
          gameBoard.classList.remove('is-invisible')
+         game.checkForTie()
          gameName.innerHTML = game.getName()
 
+         for(let columnIndex = 0; columnIndex <= 6; columnIndex++){
+             const columnID = `column-${columnIndex}`
+             const column = document.getElementById(columnID)
+             if(game.isColumnFull(columnIndex)){
+                 column.classList.add('full')
+             } else {
+                 column.classList.remove('full')
+             }
+         }
 
          for(let rowIndex = 0; rowIndex <= 5; rowIndex++){
              for(let columnIndex = 0; columnIndex <= 6; columnIndex++){
@@ -41,8 +53,14 @@ let game = undefined
              targets.classList.remove('black')
              targets.classList.add('red')
          }
-         gameName.innerHTML = game.getName()
+         
      }
+
+        let names = game.getName()
+        console.log('Line 57')
+        console.log(names)
+        console.log(game.winnerNumber)
+        gameName.innerHTML = names
     }
 window.addEventListener('DOMContentLoaded', event => {
     const playerOne = document.getElementById('player-1-name')
@@ -67,7 +85,7 @@ window.addEventListener('DOMContentLoaded', event => {
     })
 
     newGame.addEventListener('click', event =>{
-        game = new Game(playerOne, playerTwo)
+        game = new Game(playerOne.value, playerTwo.value)
         playerOne.innerHTML = ''
         playerTwo.innerHTML = ''
         newGame.disabled = true
@@ -81,6 +99,7 @@ window.addEventListener('DOMContentLoaded', event => {
         game.playInColumn(columnIndex)
         console.log(game.currentPlayer)
         updateUI()
+        
     })
 
 })
